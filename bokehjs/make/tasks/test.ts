@@ -110,7 +110,7 @@ async function headless(port: number): Promise<ChildProcess> {
         const [line] = result
         console.log(line.trim())
         resolve(proc)
-      } else if (buffer.match(/bind\(\)/)) {
+      } else if (buffer.match(/bind\(\)/) != null) {
         proc.stderr.removeAllListeners()
         clearTimeout(timer)
         reject(new BuildError("headless", `can't start headless browser on port ${port}`))

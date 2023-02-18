@@ -107,7 +107,7 @@ export class TableDataProvider implements DataProvider<Item> {
         if (v0 === v1)
           continue
         if (isNumber(v0) && isNumber(v1))
-          return sign*(v0 - v1 || +isNaN(v0) - +isNaN(v1))
+          return v0 - v1 != 0 || +isNaN(v0) - +isNaN(v1) != 0 ? sign : 0
         else
           return `${v0}` > `${v1}` ? sign : -sign
       }
