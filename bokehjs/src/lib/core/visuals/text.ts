@@ -29,10 +29,7 @@ function load_font(font: string, obj: Paintable): void {
 export interface Text extends Readonly<mixins.Text> {}
 export class Text extends VisualProperties {
   get doit(): boolean {
-    const color = this.get_text_color()
-    const alpha = this.get_text_alpha()
-
-    return !(color == null || alpha == 0)
+    return this._has_text_color() && this._has_text_alpha()
   }
 
   override update(): void {
@@ -107,6 +104,22 @@ export class Text extends VisualProperties {
     const size = this.get_text_font_size()
     const face = this.get_text_font()
     return `${style} ${size} ${face}`
+  }
+
+  _has_text_color(): boolean {
+    if (this.text_color.get_value() != null) {
+      return true
+    } else {
+      return this.get_text_color() != null
+    }
+  }
+
+  _has_text_alpha(): boolean {
+    if (this.text_alpha.get_value() != 0) {
+      return true
+    } else {
+      return this.get_text_alpha() != 0
+    }
   }
 
   get_text_color(): Color | null {
