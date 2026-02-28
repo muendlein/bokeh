@@ -342,12 +342,6 @@ export class GlyphRendererView extends DataRendererView {
       }
     })()
 
-    /*
-    console.log(`${all_indices} all_indices`)
-    console.log(`${indices} indices`)
-    console.log(`${selected_full_indices} selected_full_indices`)
-    */
-
     // inspected is in full set space
     const {inspected} = this.model.data_source
 
