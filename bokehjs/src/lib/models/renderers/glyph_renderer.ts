@@ -28,6 +28,7 @@ import {FactorRange} from "../ranges/factor_range"
 import {Decoration} from "../graphics/decoration"
 import type {Marking} from "../graphics/marking"
 import type {OpaqueIndices, MultiIndices, ImageIndex} from "../selections/selection"
+import type {Arrayable} from "core/types"
 
 type Defaults = {
   fill: {fill_alpha?: number, fill_color?: Color}
@@ -341,6 +342,12 @@ export class GlyphRendererView extends DataRendererView {
       }
     })()
 
+    /*
+    console.log(`${all_indices} all_indices`)
+    console.log(`${indices} indices`)
+    console.log(`${selected_full_indices} selected_full_indices`)
+    */
+
     // inspected is in full set space
     const {inspected} = this.model.data_source
 
@@ -352,7 +359,7 @@ export class GlyphRendererView extends DataRendererView {
       selected_glyphs: inspected.selected_glyphs,
     }
 
-    const inspected_full_indices = new Set((() => {
+    const inspected_full_indices = (() => {
       if (inspected.is_empty()) {
         return []
       } else {
@@ -365,14 +372,15 @@ export class GlyphRendererView extends DataRendererView {
           return Object.keys(inspected.multiline_indices).map((i) => parseInt(i))
         }
       }
-    })())
+    })()
 
     // inspected is transformed to subset space
     const inspected_subset_indices = (() => {
-      if (inspected_full_indices.size === 0) {
+      if (inspected_full_indices.length === 0) {
         return []
       }
-      return filter(indices, (i) => inspected_full_indices.has(all_indices[i]))
+      const inspected_full_indices_set = new Set(inspected_full_indices)
+      return filter(indices, (i) => inspected_full_indices_set.has(all_indices[i]))
     })()
 
     const {lod_threshold} = this.plot_model
@@ -433,12 +441,29 @@ export class GlyphRendererView extends DataRendererView {
       }
     // Render with selection
     } else {
-      // reset the selection mask
-      const selected_mask = new Set(selected_full_indices)
+      const [selected_subset_indices, nonselected_subset_indices] = this._get_rendered_selected_indices(all_indices, indices, selected_full_indices)
 
-      // intersect/different selection with render mask
-      const selected_subset_indices: number[] = new Array()
-      const nonselected_subset_indices: number[] = new Array()
+      nonselection_glyph.paint(ctx, nonselected_subset_indices)
+      selection_glyph.paint(ctx, selected_subset_indices)
+      if (this.hover_glyph != null) {
+        if (this.glyph instanceof LineView) {
+          this.hover_glyph.paint(ctx, this.model.view.convert_indices_from_subset(inspected_subset_indices))
+        } else {
+          this.hover_glyph.paint(ctx, inspected_subset_indices)
+        }
+      }
+    }
+
+    ctx.restore()
+  }
+
+  _get_rendered_selected_indices(all_indices: number[], indices: number[], selected_full_indices: Arrayable<number>): [number[], number[]] {
+    // reset the selection mask
+    const selected_mask = new Set(selected_full_indices)
+
+    // intersect/different selection with render mask
+    const selected_subset_indices: number[] = new Array()
+    const nonselected_subset_indices: number[] = new Array()
 
       // now, selected is changed to subset space, except for Line/Step glyph
       if (this.glyph instanceof LineView || this.glyph instanceof StepView) {
@@ -469,8 +494,7 @@ export class GlyphRendererView extends DataRendererView {
         }
       }
     }
-
-    ctx.restore()
+    return [selected_subset_indices, nonselected_subset_indices]
   }
 
   get_reference_point(field: string | null, value?: unknown): number {
