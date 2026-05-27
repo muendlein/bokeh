@@ -459,32 +459,21 @@ export class GlyphRendererView extends DataRendererView {
     const selected_subset_indices: number[] = new Array()
     const nonselected_subset_indices: number[] = new Array()
 
-      // now, selected is changed to subset space, except for Line/Step glyph
-      if (this.glyph instanceof LineView || this.glyph instanceof StepView) {
-        for (const i of all_indices) {
-          if (selected_mask.has(i)) {
-            selected_subset_indices.push(i)
-          } else {
-            nonselected_subset_indices.push(i)
-          }
-        }
-      } else {
-        for (const i of indices) {
-          if (selected_mask.has(all_indices[i])) {
-            selected_subset_indices.push(i)
-          } else {
-            nonselected_subset_indices.push(i)
-          }
+    // now, selected is changed to subset space, except for Line/Step glyph
+    if (this.glyph instanceof LineView || this.glyph instanceof StepView) {
+      for (const i of all_indices) {
+        if (selected_mask.has(i)) {
+          selected_subset_indices.push(i)
+        } else {
+          nonselected_subset_indices.push(i)
         }
       }
-
-      nonselection_glyph.paint(ctx, nonselected_subset_indices)
-      selection_glyph.paint(ctx, selected_subset_indices)
-      if (this.hover_glyph != null) {
-        if (this.glyph instanceof LineView || this.glyph instanceof StepView) {
-          this.hover_glyph.paint(ctx, this.model.view.convert_indices_from_subset(inspected_subset_indices))
+    } else {
+      for (const i of indices) {
+        if (selected_mask.has(all_indices[i])) {
+          selected_subset_indices.push(i)
         } else {
-          this.hover_glyph.paint(ctx, inspected_subset_indices)
+          nonselected_subset_indices.push(i)
         }
       }
     }
